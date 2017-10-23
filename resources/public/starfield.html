@@ -2,10 +2,38 @@
 
 <html>
     <head>
+        <meta charset="UTF-8" />
         <title>Star Field</title>
+        <link rel="stylesheet" href="css/app.css"/>
+
+        <script
+            src="https://code.jquery.com/jquery-3.2.1.js"
+            integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
+            crossorigin="anonymous"></script>
+
         <script src="js/starfield.js"></script>
+
+        <style>
+         html, body { overflow: hidden }
+         div { display: flex; align-items: center; justify-content: center }
+         input { width: auto !important }
+        </style>
     </head>
     <body>
-        <canvas id="canvas" width="1920" height="1080"></canvas>
+        <div>
+            <input id="star-count-range"
+                   type="range"
+                   min="100"
+                   max="5000"
+                   step="100"></input>
+
+            <input id="star-count" type="number" disabled>
+            <button id="start" class="button primary">Start</button>
+            <button id="play" class="button success">Play</button>
+            <button id="pause" class="button warning">Pause</button>
+            <button id="stop" class="button seconary">Stop</button>
+        </div>
+
+        <canvas id="canvas"></canvas>
     </body>
 </html>
