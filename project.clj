@@ -29,4 +29,13 @@
               :asset-path "js/starfield"
               :main "dan-shiffman-coding-challenges.starfield.core"
               :optimizations :none
+              :pretty-print true}}
+
+            {:source-paths ["src/cljs/dan_shiffman_coding_challenges/menger_sponge"]
+             :compiler
+             {:output-to "resources/public/js/menger-sponge.js"
+              :output-dir "resources/public/js/menger-sponge"
+              :asset-path "js/menger-sponge"
+              :main "dan-shiffman-coding-challenges.menger-sponge.core"
+              :optimizations :none
               :pretty-print true}}]})
