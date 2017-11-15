@@ -36,4 +36,12 @@
               :output-dir "resources/public/js/menger-sponge"
               :asset-path "js/menger-sponge"
               :main "dan-shiffman-coding-challenges.menger-sponge.core"
+              :parallel-build true}}
+
+            {:source-paths ["src/cljs/dan_shiffman_coding_challenges/snake"]
+             :compiler
+             {:output-to "resources/public/js/snake.js"
+              :output-dir "resources/public/js/snake"
+              :asset-path "js/snake"
+              :main "dan-shiffman-coding-challenges.snake.core"
               :parallel-build true}}]})
