@@ -23,8 +23,15 @@
     (q/fill 255)
     (q/rect x y scale scale)
 
-    (q/fill 170)
-    (doseq [[x y] tail] (q/rect x y scale scale))))
+    (loop [tail tail]
+      (when (seq tail)
+        (let [[x y] (first tail)]
+          (if (next tail)
+            (q/fill 170)
+            (q/fill 255 0 0))
+
+          (q/rect x y scale scale)
+          (recur (rest tail)))))))
 
 (defn- make-snake [{:keys [x y width height scale] :as m}]
   (map->Snake

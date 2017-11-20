@@ -14,9 +14,24 @@
 
         <style>
             html, body { margin:0; overflow: hidden }
+            form { display: flex; align-items: center; justify-content: center }
+            label { padding-right: 5px }
+            input { margin-top: 2px; vertical-align: top }
         </style>
     </head>
     <body>
+        <form autocomplete="off">
+            <label for="no-ai">No AI
+                <input type="radio" id="no-ai" name="ai-mode" value="no-ai" checked>
+            </label>
+
+            <label for="greedy-best-first-search">
+                Greedy Best-First Search
+                <input type="radio" id="greedy-best-first-search" name="ai-mode"
+                       value="greedy-best-first-search">
+            </label>
+        </form>
+
         <canvas id="canvas" tabindex="-1"></canvas>
     </body>
 </html>

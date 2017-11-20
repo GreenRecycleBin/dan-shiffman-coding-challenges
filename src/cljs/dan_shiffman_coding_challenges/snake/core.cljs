@@ -2,11 +2,14 @@
   (:require [dan-shiffman-coding-challenges.snake.food
              :refer [make-random-food]]
 
-            [dan-shiffman-coding-challenges.snake.snake
-             :refer [make-random-snake]]
+            [dan-shiffman-coding-challenges.snake.greedy-best-first-search
+             :refer [next-direction]]
 
             [dan-shiffman-coding-challenges.snake.protocols
              :refer [change-direction eat move render stop]]
+
+            [dan-shiffman-coding-challenges.snake.snake
+             :refer [make-random-snake]]
 
             [dan-shiffman-coding-challenges.snake.utilities
              :refer [center-text-horizontally]]
@@ -32,9 +35,26 @@
 
 (defn- update-state [{:keys [food] {:keys [x y tail count] :as snake} :snake
                       :as state}]
-  (swap! global-state #(assoc % :frame-rate (+ 10 (quot count 10))))
+  (case (:ai-mode @global-state)
+    "no-ai"
 
-  (let [new-snake (-> snake move (eat food))]
+    (swap! global-state
+           #(assoc %
+                   :frame-rate
+                   (+ (:default-frame-rate @global-state) (quot count 10))))
+
+    "greedy-best-first-search" (swap! global-state #(assoc % :frame-rate 180)))
+
+  (let [next-direction (when (= "greedy-best-first-search" (:ai-mode @global-state))
+                         (next-direction snake food))
+
+        new-snake (-> snake
+
+                      (cond->
+                          next-direction (change-direction next-direction))
+
+                      move (eat food))]
+
     (-> state
         (assoc :snake new-snake)
 
@@ -103,11 +123,22 @@
   :middleware [m/fun-mode]
   :features [:no-start])
 
+(defn- canvas-height []
+  (- (.-innerHeight js/window) (.height ($ :form))))
+
 (jayq.macros/ready
  (reset! global-state {:width (.-innerWidth js/window)
-                       :height (.-innerHeight js/window)
+                       :height (canvas-height)
                        :scale 10
-                       :frame-rate 10})
+                       :default-frame-rate 10
+                       :frame-rate 10
+                       :ai-mode "no-ai"})
 
+ (.change ($ "input[type='radio'][name='ai-mode']")
+          (fn [event]
+            (swap! global-state #(assoc % :ai-mode (.. event -target -value)))
+            (.focus ($ canvas-id))))
+
+ (.prop ($ "input[type='radio'][name='ai-mode'][value='no-ai']") "checked")
  (.focus ($ canvas-id))
  (snake))
