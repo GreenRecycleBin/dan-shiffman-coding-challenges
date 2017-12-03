@@ -32,8 +32,10 @@
              {:output-to "resources/public/js/starfield.js"
               :output-dir "resources/public/js/starfield"
               :asset-path "js/starfield"
-              :main "dan-shiffman-coding-challenges.starfield.core"
-              :parallel-build true}}
+              :parallel-build true
+              :optimizations :advanced
+              :pretty-print false
+              :externs ["externs/jquery.js"]}}
 
             :menger-sponge
             {:source-paths ["src/cljs/dan_shiffman_coding_challenges/menger_sponge"]
@@ -41,8 +43,10 @@
              {:output-to "resources/public/js/menger-sponge.js"
               :output-dir "resources/public/js/menger-sponge"
               :asset-path "js/menger-sponge"
-              :main "dan-shiffman-coding-challenges.menger-sponge.core"
-              :parallel-build true}}
+              :parallel-build true
+              :optimizations :advanced
+              :pretty-print false
+              :externs ["externs/jquery.js"]}}
 
             :snake
             {:source-paths ["src/cljs/dan_shiffman_coding_challenges/snake"]
@@ -51,5 +55,12 @@
              {:output-to "resources/public/js/snake.js"
               :output-dir "resources/public/js/snake"
               :asset-path "js/snake"
-              :main "dan-shiffman-coding-challenges.snake.core"
-              :parallel-build true}}}})
+              :parallel-build true
+              :optimizations :advanced
+              :static-fns true
+              :fn-invoke-direct true
+              :optimize-constants true
+              :pseudo-names true
+              :anon-fn-naming-policy :mapped
+              :pretty-print false
+              :externs ["externs/jquery.js"]}}}})
