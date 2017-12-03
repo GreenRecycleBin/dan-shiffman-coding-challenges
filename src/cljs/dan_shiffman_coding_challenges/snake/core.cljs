@@ -1,12 +1,14 @@
 (ns dan-shiffman-coding-challenges.snake.core
-  (:require [dan-shiffman-coding-challenges.snake.food
+  (:require [dan-shiffman-coding-challenges.snake.a-star :refer [a*]]
+
+            [dan-shiffman-coding-challenges.snake.food
              :refer [make-random-food]]
 
             [dan-shiffman-coding-challenges.snake.greedy-best-first-search
              :refer [next-direction]]
 
             [dan-shiffman-coding-challenges.snake.protocols
-             :refer [change-direction eat move render stop]]
+             :refer [change-direction eat move render toggle-moving?]]
 
             [dan-shiffman-coding-challenges.snake.snake
              :refer [make-random-snake]]
@@ -33,44 +35,107 @@
                            (:height @global-state)
                            (:scale @global-state))})
 
-(defn- update-state [{:keys [food] {:keys [x y tail count] :as snake} :snake
+(defn- calculate-next-direction [snake food]
+  (case (:ai-mode @global-state)
+    ("greedy-best-first-search"
+     "temp-greedy-best-first-search")
+
+    (do
+      (swap! global-state #(dissoc % :a*-next-direction))
+      (next-direction snake food))
+
+    "a*"
+
+    (do
+      (when-not
+          (seq
+           (get-in @global-state [:a*-next-direction]))
+        (let [a*-path (a* snake food)]
+          (if (seq a*-path)
+            (swap! global-state
+                   #(assoc % :a*-next-direction a*-path))
+
+
+            (do
+              (swap! global-state
+                     #(assoc %
+                             :ai-mode
+                             "temp-greedy-best-first-search"))
+              (js/console.log
+               "Switched to temp-greedy-best-first-search")
+
+              (next-direction snake food)))))
+
+      (let [next-direction
+            (first (:a*-next-direction @global-state))]
+        (do
+          (swap! global-state
+                 #(update-in % [:a*-next-direction] rest))
+
+          next-direction)))
+
+    nil))
+
+(defn- update-state [{{:food-x :x :food-y :y :as food} :food
+                      {:keys [x y tail count dead? moving?] :as snake} :snake
                       :as state}]
   (case (:ai-mode @global-state)
     "no-ai"
 
     (swap! global-state
-           #(assoc %
-                   :frame-rate
-                   (+ (:default-frame-rate @global-state) (quot count 10))))
+           #(-> %
+                (dissoc :a*-next-direction)
 
-    "greedy-best-first-search" (swap! global-state #(assoc % :frame-rate 60)))
+                (assoc :frame-rate
+                       (+ (:default-frame-rate @global-state)
+                          (quot count 10)))))
 
-  (let [next-direction (when (= "greedy-best-first-search" (:ai-mode @global-state))
-                         (next-direction snake food))
+    ("greedy-best-first-search" "temp-greedy-best-first-search" "a*")
+    (swap! global-state #(assoc % :frame-rate 60)))
 
-        new-snake (-> snake
+  (if (or dead? (not moving?))
+    state
 
-                      (cond->
-                          next-direction (change-direction next-direction))
+    (let [next-direction (calculate-next-direction snake food)
 
-                      move (eat food))]
+          new-snake (-> snake
 
-    (-> state
-        (assoc :snake new-snake)
+                        (cond-> next-direction
+                          (change-direction next-direction))
 
-        (update-in [:food]
-                   #(if-not (= (:count new-snake) count)
-                      (make-random-food (:width @global-state)
-                                        (:height @global-state)
-                                        (:scale @global-state)
-                                        :except (conj tail [x y]))
-                      %)))))
+                        move (eat food))]
 
-(defn- draw [{:keys [food] {:keys [count moving? dead?] :as snake} :snake}]
+      (-> state
+          (assoc :snake new-snake)
+
+          (update-in [:food]
+                     #(if (> (:count new-snake) count)
+                        (do
+                          (when (= "temp-greedy-best-first-search"
+                                   (:ai-mode @global-state))
+                            (do
+                              (swap! global-state
+                                     (fn [global-state]
+                                       (assoc global-state :ai-mode "a*")))
+
+                              (js/console.log "Switched to a*")))
+
+                          (make-random-food (:width @global-state)
+                                            (:height @global-state)
+                                            (:scale @global-state)
+                                            :except (cons [x y] tail)))
+
+                        %))))))
+
+(defn- draw [{food :food
+              {:keys [count moving? dead? width height] :as snake} :snake}]
   (q/frame-rate (:frame-rate @global-state))
   (q/background 85)
   (q/fill 255)
   (q/text-size 15)
+
+  (let [dimension-str (str "Width: " width " Height: " height)]
+    (center-text-horizontally dimension-str 25 (:width @global-state)))
 
   (let [score-str (str "Score: " count)]
     (center-text-horizontally score-str 50 (:width @global-state)))
@@ -80,15 +145,20 @@
 
   (when-not moving?
     (q/fill 255)
+
     (let [unpausing-str "Press p to unpause the game."]
-      (center-text-horizontally unpausing-str 100 (:width @global-state))))
+      (center-text-horizontally unpausing-str 100 (:width @global-state)))
+
+    (q/no-loop))
 
   (when dead?
     (q/fill 255 0 0)
+
     (let [loss-str "You lose!"]
       (center-text-horizontally loss-str 75 (:width @global-state)))
 
     (q/fill 255)
+
     (let [retry-str "Press spacebar to retry."]
       (center-text-horizontally retry-str 100 (:width @global-state)))
 
@@ -109,11 +179,22 @@
         32 (do
              (q/start-loop)
 
+             (swap! global-state
+                    #(-> %
+                         (dissoc :a*-next-direction)
+                         (assoc :ai-mode (.val (ai-mode-input :checked true)))))
+
+             (js/console.log
+              (str "Switched to " (.val (ai-mode-input :checked true))))
+
              (assoc state :snake (make-random-snake (:width @global-state)
                                                     (:height @global-state)
                                                     (:scale @global-state))))
 
-        80 (assoc state :snake (stop snake))
+        80 (do
+             (when-not (:moving? snake) (q/start-loop))
+             (assoc state :snake (toggle-moving? snake)))
+
         state))))
 
 (q/defsketch snake
