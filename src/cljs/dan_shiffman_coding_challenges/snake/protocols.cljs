@@ -6,7 +6,11 @@
 (defprotocol Moveable
   (move [this])
   (change-direction [this dir])
-  (stop [this]))
+  (toggle-moving? [this]))
 
 (defprotocol Animal
   (eat [this food]))
+
+(defprotocol Neighbor
+  (neighbor [this direction])
+  (neighbors [this except]))

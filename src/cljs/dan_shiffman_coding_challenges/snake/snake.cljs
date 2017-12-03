@@ -1,6 +1,8 @@
 (ns dan-shiffman-coding-challenges.snake.snake
-  (:require [dan-shiffman-coding-challenges.snake.protocols
-             :refer [Animal Moveable Renderable]]
+  (:require clojure.set
+
+            [dan-shiffman-coding-challenges.snake.protocols
+             :as protocols :refer [Animal Moveable Neighbor Renderable]]
 
             [dan-shiffman-coding-challenges.snake.utilities
              :refer [random-location opposite-direction]]
@@ -31,38 +33,31 @@
             (q/fill 255 0 0))
 
           (q/rect x y scale scale)
-          (recur (rest tail)))))))
+          (recur (rest tail))))))
 
-(defn- make-snake [{:keys [x y width height scale] :as m}]
-  (map->Snake
-   (let [dir (rand-nth (keys directions))]
-     (merge (dir directions)
-            {:tail '() :count 0
-             :direction dir :next-direction nil :moving? true :dead? false}
-            m
-            {:x (q/constrain x 0 (- width scale))
-             :y (q/constrain y 0 (- height scale))}))))
-
-(extend-type Snake
   Moveable
   (move [{:keys [next-direction] :as m}]
     (let [m (cond-> m
               next-direction (-> (merge (next-direction directions))
                                  (assoc :direction next-direction)
                                  (assoc :next-direction nil)))
+
           {:keys [x y tail x-speed y-speed moving? dead? width height scale]} m]
       (if (and moving? (not dead?))
         (let [new-x (+ x (* scale x-speed))
-              new-y (+ y (* scale y-speed))]
-          (if (or (some #{[new-x new-y]} (drop-last tail))
+              new-y (+ y (* scale y-speed))
+              tail-without-last (drop-last tail)]
+          (if (or (some #{[new-x new-y]} tail-without-last)
                   (< new-x 0) (>= new-x width)
                   (< new-y 0) (>= new-y height))
             (assoc m :dead? true)
             (-> m
-                (update-in [:tail] (fn [tail]
-                                     (if (seq tail)
-                                       (conj (drop-last tail) [x y])
-                                       tail)))
+                (update-in [:tail]
+
+                           (fn [tail]
+                             (if (seq tail)
+                               (conj tail-without-last [x y])
+                               tail)))
 
                 (assoc :x new-x :y new-y))))
         m)))
@@ -74,7 +69,7 @@
       (merge
        (if (not= dir (opposite-direction direction)) (dir directions)))))
 
-  (stop [{:keys [moving?] :as m}]
+  (toggle-moving? [{:keys [moving?] :as m}]
     (assoc m :moving? (not moving?)))
 
   Animal
@@ -84,7 +79,38 @@
 
       (-> (update-in [:tail] #(conj % [x y]))
           (update-in [:count] inc)
-          (assoc :x food-x :y food-y)))))
+          (assoc :x food-x :y food-y))))
+
+  Neighbor
+  (neighbor [m direction]
+    (case direction
+      (:up :down :left :right) (-> m
+                                   (protocols/change-direction direction)
+                                   protocols/move)))
+
+  (neighbors [m except]
+    (let [directions (clojure.set/difference #{:up :down :left :right} except)]
+      (remove (fn [{:keys [dead?]}] dead?)
+              (map (partial protocols/neighbor m) directions)))))
+
+(defn- constrain [n min max]
+  (cond
+    (< n min) min
+    (> n max) max
+    :default n))
+
+(defn- make-snake [{:keys [x y width height scale] :as m}]
+  (map->Snake
+   (let [dir (rand-nth (keys directions))]
+     (merge (dir directions)
+
+            {:tail '() :count 0
+             :direction dir :next-direction nil :moving? true :dead? false}
+
+            m
+
+            {:x (constrain x 0 (- width scale))
+             :y (constrain y 0 (- height scale))}))))
 
 (defn make-random-snake [width height scale]
   (make-snake (merge (random-location width height scale)
