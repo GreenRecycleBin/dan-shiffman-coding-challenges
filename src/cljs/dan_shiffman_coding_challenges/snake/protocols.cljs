@@ -10,3 +10,7 @@
 
 (defprotocol Animal
   (eat [this food]))
+
+(defprotocol Neighbor
+  (neighbor [this direction])
+  (neighbors [this except]))

@@ -1,6 +1,8 @@
 (ns dan-shiffman-coding-challenges.snake.snake
-  (:require [dan-shiffman-coding-challenges.snake.protocols
-             :refer [Animal Moveable Renderable]]
+  (:require clojure.set
+
+            [dan-shiffman-coding-challenges.snake.protocols
+             :as protocols :refer [Animal Moveable Neighbor Renderable]]
 
             [dan-shiffman-coding-challenges.snake.utilities
              :refer [random-location opposite-direction]]
@@ -31,19 +33,8 @@
             (q/fill 255 0 0))
 
           (q/rect x y scale scale)
-          (recur (rest tail)))))))
+          (recur (rest tail))))))
 
-(defn- make-snake [{:keys [x y width height scale] :as m}]
-  (map->Snake
-   (let [dir (rand-nth (keys directions))]
-     (merge (dir directions)
-            {:tail '() :count 0
-             :direction dir :next-direction nil :moving? true :dead? false}
-            m
-            {:x (q/constrain x 0 (- width scale))
-             :y (q/constrain y 0 (- height scale))}))))
-
-(extend-type Snake
   Moveable
   (move [{:keys [next-direction] :as m}]
     (let [m (cond-> m
@@ -84,7 +75,35 @@
 
       (-> (update-in [:tail] #(conj % [x y]))
           (update-in [:count] inc)
-          (assoc :x food-x :y food-y)))))
+          (assoc :x food-x :y food-y))))
+
+  Neighbor
+  (neighbor [m direction]
+    (case direction
+      (:up :down :left :right) (-> m
+                                   (protocols/change-direction direction)
+                                   protocols/move)))
+
+  (neighbors [m except]
+    (let [directions (clojure.set/difference #{:up :down :left :right} except)]
+      (remove
+       (fn [{:keys [dead?]}] dead?) (map (partial protocols/neighbor m) directions)))))
+
+(defn- constrain [n min max]
+  (cond
+    (< n min) min
+    (> n max) max
+    :default n))
+
+(defn- make-snake [{:keys [x y width height scale] :as m}]
+  (map->Snake
+   (let [dir (rand-nth (keys directions))]
+     (merge (dir directions)
+            {:tail '() :count 0
+             :direction dir :next-direction nil :moving? true :dead? false}
+            m
+            {:x (constrain x 0 (- width scale))
+             :y (constrain y 0 (- height scale))}))))
 
 (defn make-random-snake [width height scale]
   (make-snake (merge (random-location width height scale)
