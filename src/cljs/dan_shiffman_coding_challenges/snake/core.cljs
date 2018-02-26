@@ -73,7 +73,7 @@
                              (let [next-direction (first (get-in @global-state [:a*-next-direction [food-x food-y]]))]
                                (do
                                  (swap! global-state
-                                        #(update-in % [:a*-next-direction [food-x food-y]] next))
+                                        #(update-in % [:a*-next-direction [food-x food-y]] rest))
 
                                  next-direction)))
 
@@ -97,7 +97,7 @@
                           (make-random-food (:width @global-state)
                                             (:height @global-state)
                                             (:scale @global-state)
-                                            :except (conj tail [x y])))
+                                            :except (cons [x y] tail)))
                         %))))))
 
 (defn- draw [{:keys [food] {:keys [count moving? dead? width height] :as snake} :snake}]

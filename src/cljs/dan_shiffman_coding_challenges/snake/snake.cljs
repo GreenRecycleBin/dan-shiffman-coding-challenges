@@ -52,7 +52,7 @@
             (-> m
                 (update-in [:tail] (fn [tail]
                                      (if (seq tail)
-                                       (conj (drop-last tail) [x y])
+                                       (cons [x y] (drop-last tail))
                                        tail)))
 
                 (assoc :x new-x :y new-y))))
@@ -73,7 +73,7 @@
     (cond-> m
       (and (= food-x x) (= food-y y))
 
-      (-> (update-in [:tail] #(conj % [x y]))
+      (-> (update-in [:tail] #(cons [x y] %))
           (update-in [:count] inc)
           (assoc :x food-x :y food-y))))
 
