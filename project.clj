@@ -3,13 +3,13 @@
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[jayq "2.5.4"]
-                 [org.clojure/clojure "1.8.0"]
+  :dependencies [[jayq "2.5.5"]
+                 [org.clojure/clojure "1.9.0"]
                  [org.clojure/clojurescript "1.9.946"]
                  [quil "2.6.1-SNAPSHOT"]
-                 [tailrecursion/cljs-priority-map "1.2.1-SNAPSHOT"]]
+                 [tailrecursion/cljs-priority-map "1.2.1"]]
 
-  :plugins [[lein-cljsbuild "1.1.5"]
+  :plugins [[lein-cljsbuild "1.1.7"]
             [deraen/lein-sass4clj "0.3.1"]
             [lein-figwheel "0.5.14"]]
 
