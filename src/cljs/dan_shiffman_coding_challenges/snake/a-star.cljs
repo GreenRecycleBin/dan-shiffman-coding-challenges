@@ -1,13 +1,13 @@
 (ns dan-shiffman-coding-challenges.snake.a-star
   (:require clojure.set
 
+            [dan-shiffman-coding-challenges.snake.cheaplist :refer [cheap-list]]
+
             [dan-shiffman-coding-challenges.snake.protocols
              :refer [neighbors]]
 
             [dan-shiffman-coding-challenges.snake.utilities
-             :refer [opposite-direction]]
-
-            [tailrecursion.priority-map :refer [priority-map]]))
+             :refer [opposite-direction]]))
 
 (defn- manhattan-distance [x1 y1 x2 y2]
   (+ (Math/abs (- x1 x2)) (Math/abs (- y1 y2))))
@@ -27,9 +27,11 @@
 (defn a* [{:keys [x y scale direction tail] :as snake}
           {:food-x :x :food-y :y :as food}]
   (loop [closed (transient #{})
-         open-snake (priority-map snake 0)
+         open-snake (cheap-list (fn [[_ a] [_ b]]
+                                  (> a b))
+                                [snake 0])
          cell-to-parent-cell-and-direction-and-score (transient {[x y] [nil nil 0]})]
-    (when-let [[{:keys [x y scale direction tail] :as snake}] (peek open-snake)]
+    (when-let [[{:keys [x y scale direction tail] :as snake}] (first open-snake)]
       (if (= [x y] [food-x food-y])
         (directions (persistent! cell-to-parent-cell-and-direction-and-score)
                     food)
@@ -50,7 +52,7 @@
                                  js/Number.MAX_SAFE_INTEGER))]
                 [neighbor new-score])]
           (recur (conj! closed [x y])
-                 (into (pop open-snake) neighbor-to-new-score)
+                 (into (rest open-snake) neighbor-to-new-score)
 
                  (reduce #(conj! %1 %2) cell-to-parent-cell-and-direction-and-score
                          (for [[{:new-x :x :new-y :y :direction :direction} score]
