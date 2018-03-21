@@ -27,8 +27,7 @@
 (defn a* [{:keys [x y scale direction tail] :as snake}
           {:food-x :x :food-y :y :as food}]
   (loop [closed (transient #{})
-         open-snake (cheap-list (fn [[_ a] [_ b]]
-                                  (> a b))
+         open-snake (cheap-list second
                                 [snake 0])
          cell-to-parent-cell-and-direction-and-score (transient {[x y] [nil nil 0]})]
     (when-let [[{:keys [x y scale direction tail] :as snake}] (first open-snake)]
