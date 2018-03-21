@@ -1,9 +1,6 @@
 (ns dan-shiffman-coding-challenges.snake.snake
   (:require clojure.set
 
-            [dan-shiffman-coding-challenges.snake.protocols
-             :as protocols :refer [Animal Moveable Neighbor Renderable]]
-
             [dan-shiffman-coding-challenges.snake.utilities
              :refer [random-location opposite-direction]]
 
@@ -26,94 +23,109 @@
 
 (defrecord Snake [x y tail tail-set count
                   direction next-direction ^boolean moving? ^boolean dead?
-                  width height scale]
+                  width height scale])
 
-  Renderable
-  (render [{:keys [x y scale tail]}]
-    (q/no-stroke)
-    (q/fill 255)
-    (q/rect x y scale scale)
-
-    (when (seq tail)
-      (q/fill 255 0 0)
-
-      (let [[x y] (peek tail)]
-        (q/rect x y scale scale))
-
-      (q/fill 170)
-
-      (loop [tail (pop tail)]
-        (when (seq tail)
-          (let [[x y] (peek tail)]
+(set! (.. Snake -prototype -render)
+      (fn []
+        (this-as this
+          (let [{:keys [x y scale tail]} this]
+            (q/no-stroke)
+            (q/fill 255)
             (q/rect x y scale scale)
-            (recur (pop tail)))))))
 
-  Moveable
-  (move [{:keys [next-direction] :as m}]
-    (let [m (cond-> m
-              next-direction (assoc :direction next-direction :next-direction nil))
+            (when (seq tail)
+              (q/fill 255 0 0)
 
-          {:keys [x y tail tail-set ^boolean moving? ^boolean dead? direction width height scale]} m]
-      (if (and moving? (not dead?))
-        (let [x-speed (x-speed direction)
-              y-speed (y-speed direction)
-              new-x (+ x (* scale x-speed))
-              new-y (+ y (* scale y-speed))
-              last-tail (peek tail)
-              tail-set-without-last (disj tail-set last-tail)]
-          (if (or (contains? tail-set-without-last [new-x new-y])
-                  (< new-x 0) (>= new-x width)
-                  (< new-y 0) (>= new-y height))
-            (assoc m :dead? true)
+              (let [[x y] (peek tail)]
+                (q/rect x y scale scale))
 
-            (let [tail-without-last (pop tail)]
-              (-> m
+              (q/fill 170)
 
-                  (update-in [:tail]
-                             #(if (seq %) (conj tail-without-last [x y]) %))
+              (loop [tail (pop tail)]
+                (when (seq tail)
+                  (let [[x y] (peek tail)]
+                    (q/rect x y scale scale)
+                    (recur (pop tail))))))))))
 
-                  (update-in [:tail-set]
-                             #(if (seq %) (conj tail-set-without-last [x y]) %))
+(set! (.. Snake -prototype -move)
+      (fn []
+        (this-as this
+          (let [{:keys [next-direction] :as m} this]
+            (let [m (cond-> m
+                      next-direction (assoc :direction next-direction :next-direction nil))
 
-                  (assoc :x new-x :y new-y)))))
+                  {:keys [x y tail tail-set ^boolean moving? ^boolean direction dead? width height scale]} m]
+              (if (and moving? (not dead?))
+                (let [x-speed (x-speed direction)
+                      y-speed (y-speed direction)
+                      new-x (+ x (* scale x-speed))
+                      new-y (+ y (* scale y-speed))
+                      last-tail (peek tail)
+                      tail-set-without-last (disj tail-set last-tail)]
+                  (if (or (contains? tail-set-without-last [new-x new-y])
+                          (< new-x 0) (>= new-x width)
+                          (< new-y 0) (>= new-y height))
+                    (assoc m :dead? true)
 
-        m)))
+                    (let [tail-without-last (pop tail)]
+                      (-> m
 
-  (change-direction [{:keys [direction next-direction] :as m} dir]
-    (cond-> m
-      (not next-direction)
+                          (update-in [:tail]
+                                     #(if (seq %) (conj tail-without-last [x y]) %))
 
-      (as-> m
-          (when-not (= dir (opposite-direction direction))
-            (assoc m :next-direction dir)))))
+                          (update-in [:tail-set]
+                                     #(if (seq %) (conj tail-set-without-last [x y]) %))
 
-  (toggle-moving? [{:keys [moving?] :as m}]
-    (assoc m :moving? (not moving?)))
+                          (assoc :x new-x :y new-y)))))
 
-  Animal
-  (eat [{:keys [x y] :as m} {:food-x :x :food-y :y}]
-    (cond-> m
-      (and (= food-x x) (= food-y y))
+                m))))))
 
-      (-> (update-in [:tail] #(conj % [x y]))
-          (update-in [:tail-set] #(conj % [x y]))
-          (update-in [:count] inc)
-          (assoc :x food-x :y food-y))))
+(set! (.. Snake -prototype -change-direction)
+      (fn [dir]
+        (this-as this
+          (let [{:keys [direction next-direction] :as m} this]
+            (cond-> m
+              (not next-direction)
 
-  Neighbor
-  (neighbor [m direction]
-    (case direction
-      (:up :down :left :right) (-> m
-                                   (protocols/change-direction direction)
-                                   protocols/move)))
+              (as-> m
+                  (when-not (= dir (opposite-direction direction))
+                    (assoc m :next-direction dir))))))))
 
-  (neighbors [m except-direction except-cells]
-    (let [directions (clojure.set/difference direction-set except-direction)]
-      (keep #(let [m (protocols/neighbor m %)]
-               (when-not (or (:dead? m)
-                             (contains? except-cells [(:x m) (:y m)]))
-                 m))
-            directions))))
+(set! (.. Snake -prototype -toggle-moving?)
+      (fn []
+        (this-as this
+          (let [{:keys [moving?] :as m} this]
+            (assoc m :moving? (not moving?))))))
+
+(set! (.. Snake -prototype -eat)
+      (fn [{:food-x :x :food-y :y}]
+        (this-as this
+          (let [{:keys [x y] :as m} this]
+            (cond-> m
+              (and (= food-x x) (= food-y y))
+
+              (-> (update-in [:tail] #(conj % [x y]))
+                  (update-in [:tail-set] #(conj % [x y]))
+                  (update-in [:count] inc)
+                  (assoc :x food-x :y food-y)))))))
+
+(set! (.. Snake -prototype -neighbor)
+      (fn [direction]
+        (this-as m
+          (case direction
+            (:up :down :left :right) (-> m
+                                         (.change-direction direction)
+                                         .move)))))
+
+(set! (.. Snake -prototype -neighbors)
+      (fn [except-direction except-cells]
+        (this-as m
+          (let [directions (clojure.set/difference direction-set except-direction)]
+            (keep #(let [m (.neighbor m %)]
+                     (when-not (or (:dead? m)
+                                   (contains? except-cells [(:x m) (:y m)]))
+                       m))
+                  directions)))))
 
 (defn- constrain [n min max]
   (cond
@@ -123,13 +135,14 @@
 
 (defn- make-snake [{:keys [x y width height scale] :as m}]
   (map->Snake
-   (merge {:tail #queue [] :tail-set #{} :count 0
-           :direction (rand-nth directions) :next-direction nil :moving? true :dead? false}
+   (let [dir (rand-nth directions)]
+     (merge {:tail #queue [] :tail-set #{} :count 0
+             :direction dir :next-direction nil :moving? true :dead? false}
 
-          m
+            m
 
-          {:x (constrain x 0 (- width scale))
-           :y (constrain y 0 (- height scale))})))
+            {:x (constrain x 0 (- width scale))
+             :y (constrain y 0 (- height scale))}))))
 
 (defn make-random-snake [width height scale]
   (make-snake (merge (random-location width height scale)
