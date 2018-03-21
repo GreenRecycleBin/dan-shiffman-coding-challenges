@@ -6,8 +6,8 @@
 
             [quil.core :as q :include-macros true]))
 
-(def ^:private direction-set #{:up :down :left :right})
-(def ^:private directions [:up :down :left :right])
+(def ^:private ^:const direction-set #{:up :down :left :right})
+(def ^:private ^:const directions [:up :down :left :right])
 
 (defn- x-speed [direction]
   (case direction
