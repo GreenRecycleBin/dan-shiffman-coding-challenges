@@ -25,15 +25,19 @@
     (q/fill 255)
     (q/rect x y scale scale)
 
-    (loop [tail tail]
-      (when (seq tail)
-        (let [[x y] (first tail)]
-          (if (next tail)
-            (q/fill 170)
-            (q/fill 255 0 0))
+    (when (seq tail)
+      (q/fill 255 0 0)
 
-          (q/rect x y scale scale)
-          (recur (rest tail))))))
+      (let [[x y] (peek tail)]
+        (q/rect x y scale scale))
+
+      (q/fill 170)
+
+      (loop [tail (pop tail)]
+        (when (seq tail)
+          (let [[x y] (peek tail)]
+            (q/rect x y scale scale)
+            (recur (pop tail)))))))
 
   Moveable
   (move [{:keys [next-direction] :as m}]
@@ -46,18 +50,14 @@
       (if (and moving? (not dead?))
         (let [new-x (+ x (* scale x-speed))
               new-y (+ y (* scale y-speed))
-              tail-without-last (drop-last tail)]
+              tail-without-last (pop tail)]
           (if (or (some #{[new-x new-y]} tail-without-last)
                   (< new-x 0) (>= new-x width)
                   (< new-y 0) (>= new-y height))
             (assoc m :dead? true)
             (-> m
                 (update-in [:tail]
-
-                           (fn [tail]
-                             (if (seq tail)
-                               (conj tail-without-last [x y])
-                               tail)))
+                           #(if (seq %) (conj tail-without-last [x y]) %))
 
                 (assoc :x new-x :y new-y))))
         m)))
@@ -104,7 +104,7 @@
    (let [dir (rand-nth (keys directions))]
      (merge (dir directions)
 
-            {:tail '() :count 0
+            {:tail #queue [] :count 0
              :direction dir :next-direction nil :moving? true :dead? false}
 
             m
