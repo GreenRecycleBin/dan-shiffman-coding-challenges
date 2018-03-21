@@ -9,14 +9,23 @@
 
             [quil.core :as q :include-macros true]))
 
-(def ^:private directions
-  {:up {:x-speed 0 :y-speed -1 :next-direction :up}
-   :down {:x-speed 0 :y-speed 1 :next-direction :down}
-   :left {:x-speed -1 :y-speed 0 :next-direction :left}
-   :right {:x-speed 1 :y-speed 0 :next-direction :right}})
+(def ^:private direction-set #{:up :down :left :right})
+(def ^:private directions [:up :down :left :right])
+
+(defn- x-speed [direction]
+  (case direction
+    (:up :down) 0
+    :left -1
+    :right 1))
+
+(defn- y-speed [direction]
+  (case direction
+    :up -1
+    :down 1
+    (:left :right) 0))
 
 (defrecord Snake [x y tail tail-set count
-                  x-speed y-speed direction next-direction moving? dead?
+                  direction next-direction moving? dead?
                   width height scale]
 
   Renderable
@@ -42,13 +51,13 @@
   Moveable
   (move [{:keys [next-direction] :as m}]
     (let [m (cond-> m
-              next-direction (-> (merge (next-direction directions))
-                                 (assoc :direction next-direction)
-                                 (assoc :next-direction nil)))
+              next-direction (assoc :direction next-direction :next-direction nil))
 
-          {:keys [x y tail tail-set x-speed y-speed moving? dead? width height scale]} m]
+          {:keys [x y tail tail-set moving? dead? direction width height scale]} m]
       (if (and moving? (not dead?))
-        (let [new-x (+ x (* scale x-speed))
+        (let [x-speed (x-speed direction)
+              y-speed (y-speed direction)
+              new-x (+ x (* scale x-speed))
               new-y (+ y (* scale y-speed))
               last-tail (peek tail)
               tail-set-without-last (disj tail-set last-tail)]
@@ -74,8 +83,9 @@
     (cond-> m
       (not next-direction)
 
-      (merge
-       (if (not= dir (opposite-direction direction)) (dir directions)))))
+      (as-> m
+          (when-not (= dir (opposite-direction direction))
+            (assoc m :next-direction dir)))))
 
   (toggle-moving? [{:keys [moving?] :as m}]
     (assoc m :moving? (not moving?)))
@@ -113,16 +123,13 @@
 
 (defn- make-snake [{:keys [x y width height scale] :as m}]
   (map->Snake
-   (let [dir (rand-nth (keys directions))]
-     (merge (dir directions)
+   (merge {:tail #queue [] :tail-set #{} :count 0
+           :direction (rand-nth directions) :next-direction nil :moving? true :dead? false}
 
-            {:tail #queue [] :tail-set #{} :count 0
-             :direction dir :next-direction nil :moving? true :dead? false}
+          m
 
-            m
-
-            {:x (constrain x 0 (- width scale))
-             :y (constrain y 0 (- height scale))}))))
+          {:x (constrain x 0 (- width scale))
+           :y (constrain y 0 (- height scale))})))
 
 (defn make-random-snake [width height scale]
   (make-snake (merge (random-location width height scale)
