@@ -15,7 +15,7 @@
    :left {:x-speed -1 :y-speed 0 :next-direction :left}
    :right {:x-speed 1 :y-speed 0 :next-direction :right}})
 
-(defrecord Snake [x y tail count
+(defrecord Snake [x y tail tail-set count
                   x-speed y-speed direction next-direction moving? dead?
                   width height scale]
 
@@ -46,20 +46,28 @@
                                  (assoc :direction next-direction)
                                  (assoc :next-direction nil)))
 
-          {:keys [x y tail x-speed y-speed moving? dead? width height scale]} m]
+          {:keys [x y tail tail-set x-speed y-speed moving? dead? width height scale]} m]
       (if (and moving? (not dead?))
         (let [new-x (+ x (* scale x-speed))
               new-y (+ y (* scale y-speed))
-              tail-without-last (pop tail)]
-          (if (or (some #{[new-x new-y]} tail-without-last)
+              last-tail (peek tail)
+              tail-set-without-last (disj tail-set last-tail)]
+          (if (or (contains? tail-set-without-last [new-x new-y])
                   (< new-x 0) (>= new-x width)
                   (< new-y 0) (>= new-y height))
             (assoc m :dead? true)
-            (-> m
-                (update-in [:tail]
-                           #(if (seq %) (conj tail-without-last [x y]) %))
 
-                (assoc :x new-x :y new-y))))
+            (let [tail-without-last (pop tail)]
+              (-> m
+
+                  (update-in [:tail]
+                             #(if (seq %) (conj tail-without-last [x y]) %))
+
+                  (update-in [:tail-set]
+                             #(if (seq %) (conj tail-set-without-last [x y]) %))
+
+                  (assoc :x new-x :y new-y)))))
+
         m)))
 
   (change-direction [{:keys [direction next-direction] :as m} dir]
@@ -78,6 +86,7 @@
       (and (= food-x x) (= food-y y))
 
       (-> (update-in [:tail] #(conj % [x y]))
+          (update-in [:tail-set] #(conj % [x y]))
           (update-in [:count] inc)
           (assoc :x food-x :y food-y))))
 
@@ -104,7 +113,7 @@
    (let [dir (rand-nth (keys directions))]
      (merge (dir directions)
 
-            {:tail #queue [] :count 0
+            {:tail #queue [] :tail-set #{} :count 0
              :direction dir :next-direction nil :moving? true :dead? false}
 
             m
