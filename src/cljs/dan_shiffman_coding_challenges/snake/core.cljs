@@ -7,9 +7,6 @@
             [dan-shiffman-coding-challenges.snake.greedy-best-first-search
              :refer [next-direction]]
 
-            [dan-shiffman-coding-challenges.snake.protocols
-             :refer [change-direction eat move render toggle-moving?]]
-
             [dan-shiffman-coding-challenges.snake.snake
              :refer [make-random-snake]]
 
@@ -101,9 +98,9 @@
           new-snake (-> snake
 
                         (cond-> next-direction
-                          (change-direction next-direction))
+                          (.change-direction next-direction))
 
-                        move (eat food))]
+                        .move (.eat food))]
 
       (-> state
           (assoc :snake new-snake)
@@ -140,8 +137,8 @@
   (let [score-str (str "Score: " count)]
     (center-text-horizontally score-str 50 (:width @global-state)))
 
-  (render food)
-  (render snake)
+  (.render food)
+  (.render snake)
 
   (when-not moving?
     (q/fill 255)
@@ -172,8 +169,8 @@
   (let [key-keyword (q/key-as-keyword)]
     (case key-keyword
       (:up :down :left :right) (assoc state
-                                      :snake (change-direction snake
-                                                               key-keyword))
+                                      :snake (.change-direction snake
+                                                                key-keyword))
 
       (case (q/key-code)
         32 (do
@@ -193,7 +190,7 @@
 
         80 (do
              (when-not (:moving? snake) (q/start-loop))
-             (assoc state :snake (toggle-moving? snake)))
+             (assoc state :snake (.toggle-moving? snake)))
 
         state))))
 

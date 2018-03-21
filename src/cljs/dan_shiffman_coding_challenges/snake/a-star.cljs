@@ -1,9 +1,6 @@
 (ns dan-shiffman-coding-challenges.snake.a-star
   (:require clojure.set
 
-            [dan-shiffman-coding-challenges.snake.protocols
-             :refer [neighbors]]
-
             [dan-shiffman-coding-challenges.snake.utilities
              :refer [opposite-direction]]
 
@@ -31,7 +28,7 @@
         (directions cell-to-parent-cell cell-to-direction food)
 
         (let [neighbors
-              (neighbors snake #{(opposite-direction direction)})
+              (.neighbors snake #{(opposite-direction direction)})
 
               neighbors
               (remove (fn [{:keys [x y]}] (contains? closed [x y])) neighbors)
