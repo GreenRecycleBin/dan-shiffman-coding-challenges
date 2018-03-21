@@ -9,13 +9,13 @@
 
             [quil.core :as q :include-macros true]))
 
-(def ^:private direction-maps
+(def ^:private ^:const direction-maps
   {:up {:x-speed 0 :y-speed -1 :next-direction :up}
    :down {:x-speed 0 :y-speed 1 :next-direction :down}
    :left {:x-speed -1 :y-speed 0 :next-direction :left}
    :right {:x-speed 1 :y-speed 0 :next-direction :right}})
 
-(def ^:private direction-set (set (keys direction-maps)))
+(def ^:private ^:const direction-set (set (keys direction-maps)))
 
 (defrecord Snake [x y tail tail-set count
                   x-speed y-speed direction next-direction ^boolean moving? ^boolean dead?
