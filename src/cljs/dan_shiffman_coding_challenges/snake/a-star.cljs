@@ -21,14 +21,14 @@
 
 (defn a* [{:keys [x y scale direction tail] :as snake}
           {:food-x :x :food-y :y :as food}]
-  (loop [closed #{}
+  (loop [closed (transient #{})
          open-snake (priority-map snake 0)
-         cell-to-parent-cell {}
-         cell-to-direction {}
-         score {[x y] 0}]
+         cell-to-parent-cell (transient {})
+         cell-to-direction (transient {})
+         score (transient {[x y] 0})]
     (when-let [[{:keys [x y scale direction tail] :as snake}] (peek open-snake)]
       (if (= [x y] [food-x food-y])
-        (directions cell-to-parent-cell cell-to-direction food)
+        (directions (persistent! cell-to-parent-cell) (persistent! cell-to-direction) food)
 
         (let [neighbors
               (neighbors snake #{(opposite-direction direction)} closed)
@@ -36,21 +36,21 @@
               neighbor-to-new-score
 
               (for [{:new-x :x :new-y :y :as neighbor} neighbors
-                    :let [new-score (+ (score [x y]) scale (heuristic-cost [new-x new-y] [food-x food-y]))]
-                    :when (< new-score (score [new-x new-y] js/Number.MAX_SAFE_INTEGER))]
+                    :let [new-score (+ (get score [x y]) scale (heuristic-cost [new-x new-y] [food-x food-y]))]
+                    :when (< new-score (get score [new-x new-y] js/Number.MAX_SAFE_INTEGER))]
                 [neighbor new-score])]
-          (recur (conj closed [x y])
+          (recur (conj! closed [x y])
                  (into (pop open-snake) neighbor-to-new-score)
 
-                 (into cell-to-parent-cell
-                       (for [[{:new-x :x :new-y :y}] neighbor-to-new-score]
-                         [[new-x new-y] [x y]]))
+                 (reduce #(conj! %1 %2) cell-to-parent-cell
+                         (for [[{:new-x :x :new-y :y}] neighbor-to-new-score]
+                           [[new-x new-y] [x y]]))
 
-                 (into cell-to-direction
-                       (for [[{:new-x :x :new-y :y :direction :direction}] neighbor-to-new-score]
-                         [[new-x new-y] direction]))
+                 (reduce #(conj! %1 %2) cell-to-direction
+                         (for [[{:new-x :x :new-y :y :direction :direction}] neighbor-to-new-score]
+                           [[new-x new-y] direction]))
 
-                 (into score
-                       (for [[{:new-x :x :new-y :y} score]
-                             neighbor-to-new-score]
-                         [[new-x new-y] score]))))))))
+                 (reduce #(conj! %1 %2) score
+                         (for [[{:new-x :x :new-y :y} score]
+                               neighbor-to-new-score]
+                           [[new-x new-y] score]))))))))
