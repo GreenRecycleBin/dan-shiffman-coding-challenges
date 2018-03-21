@@ -43,10 +43,7 @@
         (directions parent-snake food)
 
         (let [neighbors
-              (neighbors snake #{(opposite-direction direction)})
-
-              neighbors
-              (remove (fn [{:keys [x y]}] (contains? closed [x y])) neighbors)
+              (neighbors snake #{(opposite-direction direction)} closed)
 
               neighbor-to-new-score
 
