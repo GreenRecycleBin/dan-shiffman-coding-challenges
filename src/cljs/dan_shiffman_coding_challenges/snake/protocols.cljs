@@ -13,4 +13,4 @@
 
 (defprotocol Neighbor
   (neighbor [this direction])
-  (neighbors [this except]))
+  (neighbors [this except-direction except-cells]))

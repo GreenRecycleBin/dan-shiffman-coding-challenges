@@ -99,10 +99,13 @@
                                    (protocols/change-direction direction)
                                    protocols/move)))
 
-  (neighbors [m except]
-    (let [directions (clojure.set/difference #{:up :down :left :right} except)]
-      (remove (fn [{:keys [dead?]}] dead?)
-              (map (partial protocols/neighbor m) directions)))))
+  (neighbors [m except-direction except-cells]
+    (let [directions (clojure.set/difference direction-set except-direction)]
+      (keep #(let [m (protocols/neighbor m %)]
+               (when-not (or (:dead? m)
+                             (contains? except-cells [(:x m) (:y m)]))
+                 m))
+            directions))))
 
 (defn- constrain [n min max]
   (cond
