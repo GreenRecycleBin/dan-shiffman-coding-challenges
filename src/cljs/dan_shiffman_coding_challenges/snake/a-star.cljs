@@ -3,9 +3,6 @@
 
             [dan-shiffman-coding-challenges.snake.cheaplist :refer [cheap-list]]
 
-            [dan-shiffman-coding-challenges.snake.protocols
-             :refer [neighbors]]
-
             [dan-shiffman-coding-challenges.snake.utilities
              :refer [opposite-direction]]))
 
@@ -36,7 +33,7 @@
                     food)
 
         (let [neighbors
-              (neighbors snake #{(opposite-direction direction)} closed)
+              (.neighbors snake #{(opposite-direction direction)} closed)
 
               neighbor-to-new-score
 
