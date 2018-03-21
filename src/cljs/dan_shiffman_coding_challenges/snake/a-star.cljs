@@ -15,32 +15,24 @@
 (defn- heuristic-cost [[x1 y1 :as start] [x2 y2 :as goal]]
   (manhattan-distance x1 y1 x2 y2))
 
-(defn- directions [parent-snake {:food-x :x :food-y :y :as food}]
-  (let [path (reverse
-              (take-while identity
-                          (iterate #(some (fn [[{:keys [x y]} cell]]
-                                            (when (= [x y] %)
-                                              cell))
-                                          parent-snake)
-                                   [food-x food-y])))]
-    (reverse
-     (map (fn [[snake-x snake-y]]
-            (let [snake (ffirst
-                         (filter (fn [[{:keys [x y]}]]
-                                   (= [x y] [snake-x snake-y]))
-                                 parent-snake))]
-              (:direction snake)))
-          (drop-last (reverse path))))))
+(defn- directions [cell-to-parent-cell-and-direction-and-score
+                   {:food-x :x :food-y :y :as food}]
+  (let [path
+
+        (take-while identity
+                    (iterate #(first (cell-to-parent-cell-and-direction-and-score %)) [food-x food-y]))]
+    (reverse (map #(nth (cell-to-parent-cell-and-direction-and-score %) 1)
+                  (drop-last path)))))
 
 (defn a* [{:keys [x y scale direction tail] :as snake}
           {:food-x :x :food-y :y :as food}]
   (loop [closed (transient #{})
          open-snake (priority-map snake 0)
-         parent-snake (transient {})
-         score {[x y] 0}]
+         cell-to-parent-cell-and-direction-and-score (transient {[x y] [nil nil 0]})]
     (when-let [[{:keys [x y scale direction tail] :as snake}] (peek open-snake)]
       (if (= [x y] [food-x food-y])
-        (directions (persistent! parent-snake) food)
+        (directions (persistent! cell-to-parent-cell-and-direction-and-score)
+                    food)
 
         (let [neighbors
               (neighbors snake #{(opposite-direction direction)} closed)
@@ -48,17 +40,19 @@
               neighbor-to-new-score
 
               (for [{:new-x :x :new-y :y :as neighbor} neighbors
-                    :let [new-score (+ (score [x y]) scale (heuristic-cost [new-x new-y] [food-x food-y]))]
-                    :when (< new-score (score [new-x new-y] js/Number.MAX_SAFE_INTEGER))]
+                    :let [new-score
+
+                          (+ (nth (get cell-to-parent-cell-and-direction-and-score [x y]) 2)
+                             scale
+                             (heuristic-cost [new-x new-y] [food-x food-y]))]
+                    :when (< new-score
+                             (or (nth (get cell-to-parent-cell-and-direction-and-score [new-x new-y]) 2)
+                                 js/Number.MAX_SAFE_INTEGER))]
                 [neighbor new-score])]
           (recur (conj! closed [x y])
                  (into (pop open-snake) neighbor-to-new-score)
 
-                 (reduce #(conj! %1 %2) parent-snake
-                         (for [[neighbor] neighbor-to-new-score]
-                           [neighbor [x y]]))
-
-                 (into score
-                       (for [[{:new-x :x :new-y :y} score]
-                             neighbor-to-new-score]
-                         [[new-x new-y] score]))))))))
+                 (reduce #(conj! %1 %2) cell-to-parent-cell-and-direction-and-score
+                         (for [[{:new-x :x :new-y :y :direction :direction} score]
+                               neighbor-to-new-score]
+                           [[new-x new-y] [[x y] direction score]]))))))))
