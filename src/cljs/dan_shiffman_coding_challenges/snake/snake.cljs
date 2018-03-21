@@ -16,7 +16,7 @@
    :right {:x-speed 1 :y-speed 0 :next-direction :right}})
 
 (defrecord Snake [x y tail count
-                  x-speed y-speed direction next-direction moving? dead?
+                  x-speed y-speed direction next-direction ^boolean moving? ^boolean dead?
                   width height scale]
 
   Renderable
@@ -42,7 +42,7 @@
                                  (assoc :direction next-direction)
                                  (assoc :next-direction nil)))
 
-          {:keys [x y tail x-speed y-speed moving? dead? width height scale]} m]
+          {:keys [x y tail x-speed y-speed ^boolean moving? ^boolean dead? width height scale]} m]
       (if (and moving? (not dead?))
         (let [new-x (+ x (* scale x-speed))
               new-y (+ y (* scale y-speed))
@@ -69,7 +69,7 @@
       (merge
        (if (not= dir (opposite-direction direction)) (dir directions)))))
 
-  (toggle-moving? [{:keys [moving?] :as m}]
+  (toggle-moving? [{:keys [^boolean moving?] :as m}]
     (assoc m :moving? (not moving?)))
 
   Animal
