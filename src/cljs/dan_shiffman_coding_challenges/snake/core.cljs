@@ -74,7 +74,7 @@
     nil))
 
 (defn- update-state [{{:food-x :x :food-y :y :as food} :food
-                      {:keys [x y tail count dead? moving?] :as snake} :snake
+                      {:keys [x y tail count ^boolean dead? ^boolean moving?] :as snake} :snake
                       :as state}]
   (case (:ai-mode @global-state)
     "no-ai"
@@ -125,7 +125,7 @@
                         %))))))
 
 (defn- draw [{food :food
-              {:keys [count moving? dead? width height] :as snake} :snake}]
+              {:keys [count ^boolean moving? ^boolean dead? width height] :as snake} :snake}]
   (q/frame-rate (:frame-rate @global-state))
   (q/background 85)
   (q/fill 255)

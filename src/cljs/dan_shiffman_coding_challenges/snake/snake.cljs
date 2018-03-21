@@ -22,7 +22,7 @@
     (:left :right) 0))
 
 (defrecord Snake [x y tail tail-set count
-                  direction next-direction moving? dead?
+                  direction next-direction ^boolean moving? ^boolean dead?
                   width height scale])
 
 (set! (.. Snake -prototype -render)
@@ -54,7 +54,7 @@
             (let [m (cond-> m
                       next-direction (assoc :direction next-direction :next-direction nil))
 
-                  {:keys [x y tail tail-set moving? dead? direction width height scale]} m]
+                  {:keys [x y tail tail-set ^boolean moving? ^boolean dead? direction width height scale]} m]
               (if (and moving? (not dead?))
                 (let [x-speed (x-speed direction)
                       y-speed (y-speed direction)
@@ -94,7 +94,7 @@
 (set! (.. Snake -prototype -toggle-moving?)
       (fn []
         (this-as this
-          (let [{:keys [moving?] :as m} this]
+          (let [{:keys [^boolean moving?] :as m} this]
             (assoc m :moving? (not moving?))))))
 
 (set! (.. Snake -prototype -eat)
