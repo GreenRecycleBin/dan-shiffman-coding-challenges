@@ -2,15 +2,6 @@
 
 (def que-size 15)
 
-(defn qsort-aux [[pivot & tail] pred]
-  (when pivot
-    (let [pred? (partial pred pivot)]
-      (lazy-cat (qsort-aux (filter pred? tail) pred)
-                [pivot]
-                (qsort-aux (remove pred? tail) pred)))))
-
-(defn qsort [xs f] (qsort-aux (seq xs) f))
-
 (deftype CheapList [pred cheap bulk]
   Object
   (toString [this] (str (seq this)))
@@ -39,10 +30,10 @@
         (pred eol curr)
         (if (>= (count cheap) que-size)
           (CheapList. pred
-                      (qsort (conj (drop-last cheap) curr) pred)
+                      (sort-by pred (conj (drop-last cheap) curr))
                       (assoc bulk item-eol pri-eol))
           (CheapList. pred
-                      (qsort (conj cheap curr) pred)
+                      (sort-by pred (conj cheap curr))
                       (assoc bulk item-curr pri-curr)))
 
         ;;new item
@@ -53,12 +44,12 @@
     (first cheap))
 
   (-rest [this]
-    (if (= (count cheap) 1)
-      (let [bulk (dissoc bulk (-> cheap first first))]
+    (let [bulk (dissoc bulk (-> cheap first first))]
+      (if (= (count cheap) 1)
         (CheapList. pred
-                    (take que-size (qsort bulk pred))
-                    bulk))
-      (CheapList. pred (rest cheap) (dissoc bulk (-> cheap first first)))))
+                    (take que-size (sort-by pred bulk))
+                    bulk)
+        (CheapList. pred (rest cheap) bulk))))
 
   cljs.core/ISeqable
   (-seq [this]
