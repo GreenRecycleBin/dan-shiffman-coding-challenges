@@ -22,7 +22,7 @@
   (:require-macros jayq.macros))
 
 (def ^:private global-state (atom {}))
-(def ^:private canvas-id "canvas")
+(def ^:private ^:const canvas-id "canvas")
 
 (defn- setup []
   (q/frame-rate (:frame-rate @global-state))

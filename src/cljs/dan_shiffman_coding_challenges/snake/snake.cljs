@@ -9,7 +9,7 @@
 
             [quil.core :as q :include-macros true]))
 
-(def ^:private directions
+(def ^:private ^:const directions
   {:up {:x-speed 0 :y-speed -1 :next-direction :up}
    :down {:x-speed 0 :y-speed 1 :next-direction :down}
    :left {:x-speed -1 :y-speed 0 :next-direction :left}
