@@ -9,13 +9,15 @@
 
             [quil.core :as q :include-macros true]))
 
-(def ^:private directions
+(def ^:private direction-maps
   {:up {:x-speed 0 :y-speed -1 :next-direction :up}
    :down {:x-speed 0 :y-speed 1 :next-direction :down}
    :left {:x-speed -1 :y-speed 0 :next-direction :left}
    :right {:x-speed 1 :y-speed 0 :next-direction :right}})
 
-(defrecord Snake [x y tail count
+(def ^:private direction-set (set (keys direction-maps)))
+
+(defrecord Snake [x y tail tail-set count
                   x-speed y-speed direction next-direction ^boolean moving? ^boolean dead?
                   width height scale]
 
@@ -42,24 +44,32 @@
   Moveable
   (move [{:keys [next-direction] :as m}]
     (let [m (cond-> m
-              next-direction (-> (merge (next-direction directions))
+              next-direction (-> (merge (next-direction direction-maps))
                                  (assoc :direction next-direction)
                                  (assoc :next-direction nil)))
 
-          {:keys [x y tail x-speed y-speed ^boolean moving? ^boolean dead? width height scale]} m]
+          {:keys [x y tail tail-set x-speed y-speed ^boolean moving? ^boolean dead? width height scale]} m]
       (if (and moving? (not dead?))
         (let [new-x (+ x (* scale x-speed))
               new-y (+ y (* scale y-speed))
-              tail-without-last (pop tail)]
-          (if (or (some #{[new-x new-y]} tail-without-last)
+              last-tail (peek tail)
+              tail-set-without-last (disj tail-set last-tail)]
+          (if (or (contains? tail-set-without-last [new-x new-y])
                   (< new-x 0) (>= new-x width)
                   (< new-y 0) (>= new-y height))
             (assoc m :dead? true)
-            (-> m
-                (update-in [:tail]
-                           #(if (seq %) (conj tail-without-last [x y]) %))
 
-                (assoc :x new-x :y new-y))))
+            (let [tail-without-last (pop tail)]
+              (-> m
+
+                  (update-in [:tail]
+                             #(if (seq %) (conj tail-without-last [x y]) %))
+
+                  (update-in [:tail-set]
+                             #(if (seq %) (conj tail-set-without-last [x y]) %))
+
+                  (assoc :x new-x :y new-y)))))
+
         m)))
 
   (change-direction [{:keys [direction next-direction] :as m} dir]
@@ -67,7 +77,7 @@
       (not next-direction)
 
       (merge
-       (if (not= dir (opposite-direction direction)) (dir directions)))))
+       (if (not= dir (opposite-direction direction)) (dir direction-maps)))))
 
   (toggle-moving? [{:keys [moving?] :as m}]
     (assoc m :moving? (not moving?)))
@@ -78,6 +88,7 @@
       (and (= food-x x) (= food-y y))
 
       (-> (update-in [:tail] #(conj % [x y]))
+          (update-in [:tail-set] #(conj % [x y]))
           (update-in [:count] inc)
           (assoc :x food-x :y food-y))))
 
@@ -101,10 +112,10 @@
 
 (defn- make-snake [{:keys [x y width height scale] :as m}]
   (map->Snake
-   (let [dir (rand-nth (keys directions))]
-     (merge (dir directions)
+   (let [dir (rand-nth (keys direction-maps))]
+     (merge (dir direction-maps)
 
-            {:tail #queue [] :count 0
+            {:tail #queue [] :tail-set #{} :count 0
              :direction dir :next-direction nil :moving? true :dead? false}
 
             m
