@@ -3,20 +3,20 @@
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[jayq "2.5.4"]
-                 [org.clojure/clojure "1.8.0"]
-                 [org.clojure/clojurescript "1.9.946"]
-                 [quil "2.6.1-SNAPSHOT"]
-                 [tailrecursion/cljs-priority-map "1.2.1-SNAPSHOT"]]
+  :dependencies [[jayq "2.5.5"]
+                 [org.clojure/clojure "1.9.0"]
+                 [org.clojure/clojurescript "1.10.339"]
+                 [quil "2.7.1"]
+                 [tailrecursion/cljs-priority-map "1.2.1"]]
 
   :plugins [[lein-cljsbuild "1.1.5"]
             [deraen/lein-sass4clj "0.3.1"]
-            [lein-figwheel "0.5.14"]]
+            [lein-figwheel "0.5.16"]]
 
   :hooks [leiningen.cljsbuild]
 
   :profiles {:dev {:dependencies [[com.cemerick/piggieback "0.2.2"]
-                                  [figwheel-sidecar "0.5.14"]]
+                                  [figwheel-sidecar "0.5.16"]]
                    :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
                    :source-paths ["dev"]}}
 
