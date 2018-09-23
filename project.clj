@@ -25,6 +25,8 @@
 
   :clean-targets ^{:protect false} [:target-path :compile-path "resources/public/js" "resources/public/css"]
 
+  :figwheel {:builds-to-start ["snake"]}
+
   :cljsbuild
   {:builds {:starfield
             {:source-paths ["src/cljs/dan_shiffman_coding_challenges/starfield"]
