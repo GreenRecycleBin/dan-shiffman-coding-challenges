@@ -1,0 +1,35 @@
+| Commit ID                                | Commit Message                                                    | Average FPS | Minimum FPS |
+| 9b4ca60567c6713676666a326adc566dc4844c7f | A*                                                                |       28.25 |        0.29 |
+|------------------------------------------+-------------------------------------------------------------------+-------------+-------------|
+| 04c046539b7f8910579bdb8b7d06a45b8c1b3b20 | Use a queue to store the snake's tail                             |       31.97 |        0.27 |
+| d8ef2f2403080d7f2c27835ea10d98752cd57634 | Store the snake's tail in a set to speed up collision detection   |       27.25 |        0.27 |
+|------------------------------------------+-------------------------------------------------------------------+-------------+-------------|
+| b306799f2ecf35d8134e5bb93497fff86a99ecca | Exclude neighbor cells in closed set during generation            |       32.55 |        0.33 |
+|------------------------------------------+-------------------------------------------------------------------+-------------+-------------|
+| 92dedb2e4d6829c9ec0ab9578c40406e36ffd60a | Use cheaplist instead of priority-map                             |       28.44 |        0.24 |
+| ade362d476fa490dae0bd71ebc5da3b624165258 | Use the standard sort function                                    |       30.57 |        0.25 |
+|------------------------------------------+-------------------------------------------------------------------+-------------+-------------|
+| 49ce65bc1267bcd0984053340f608e7c95f63016 | Reduce the size of Snake                                          |       30.03 |        0.23 |
+|------------------------------------------+-------------------------------------------------------------------+-------------+-------------|
+| a66412cc18eaf6cef9980e73eeff8a47b9389a19 | Don't use protocols                                               |       31.93 |        0.25 |
+|------------------------------------------+-------------------------------------------------------------------+-------------+-------------|
+| 7ca465aef29dc68daf23c129dd46cc949003ac12 | Add ^boolean type hints                                           |       27.56 |        0.21 |
+|------------------------------------------+-------------------------------------------------------------------+-------------+-------------|
+| b01e84b56502884b0f2bc39cd59e7575b401f0e4 | Add ^:const metadata                                              |       32.48 |        0.21 |
+|------------------------------------------+-------------------------------------------------------------------+-------------+-------------|
+| b306799f2ecf35d8134e5bb93497fff86a99ecca | Exclude neighbor cells in closed set during generation            |       32.55 |        0.33 |
+| 9aa6a30e007634e48a1563a617c3cd6bb93b882a | Add ^:const metadata                                              |       27.33 |        0.27 |
+| 9f676f2d83d57c489abbf330ac2425650276138a | Use a queue to store the snake's tail                             |       28.88 |        0.22 |
+| 1055ad6460388ab06d417e9379b6ca56189beeca | Store the snake's tail in a set to speed up collision detection   |       26.92 |        0.24 |
+|------------------------------------------+-------------------------------------------------------------------+-------------+-------------|
+| Temporary                                |                                                                   |             |             |
+| 5c7a757a4de022b29ab050969a18410be37c6343 | Use a queue to store the snake's tail                             |       16.73 |        0.10 |
+| 6647019dd4161136992b34ee6415989f54455950 | Store the snake's tail in a set to speed up collision detection   |       18.81 |        0.11 |
+| 3eab883291250a823a01349f8aeb61ca78ca7cbd | Exclude neighbor cells in closed set during generation            |       27.30 |        0.20 |
+| 0c9110af88bb7cea0a1dc001f9b0cdf8f6f1de86 | Use transient data structures                                     |       21.80 |        0.17 |
+| 60dc09d971d9b5e3b6b72f18e745b85b6c3abdc4 | Combine cell-to-parent-cell, cell-to-direction and score together |       20.78 |        0.16 |
+|------------------------------------------+-------------------------------------------------------------------+-------------+-------------|
+
+*Complimentary optimizations*
+- Use transient data structures
+- Combine cell-to-parent-cell, cell-to-direction and score together
